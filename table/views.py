@@ -19,7 +19,7 @@ from io import BytesIO
 from django.http import HttpResponse
 
 class DadosBancoAPIView(APIView):
-    @staticmethod
+    # @staticmethod
     def get_available_years_months():
         try:
             table_choice_enum = TableChoice.TOTAL
@@ -44,7 +44,7 @@ class DadosBancoAPIView(APIView):
             print(f'Erro ao obter anos disponíveis: {str(e)}')
             return []
 
-    @staticmethod
+    # @staticmethod
     def get_available_columns():
         try:
             table_choice_enum = TableChoice.TOTAL 

@@ -1227,7 +1227,7 @@ class CountryScoreAverageView(APIView):
                         total_ip_counts = np.sum(list(ip_counts.values))
                         response_data['Total de IPs reportados'] = total_ip_counts
                         for country_code, country_name in self.country_names.items():
-                            response_data[country_name] = ip_counts.get(country_code, 0)
+                            response_data[country_code] = ip_counts.get(country_code, 0)
                     else:
                         country_code = self.country_codes.get(country)
                         if country_code is None:

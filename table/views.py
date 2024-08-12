@@ -83,7 +83,8 @@ class DadosBancoAPIView(APIView):
                     'virustotal_as_owner', 'harmless', 'malicious', 'suspicious', 'undetected', 'IBM_score',
                     'IBM_average_history_Score', 'IBM_most_common_score', 'virustotal_asn', 'SHODAN_asn',
                     'SHODAN_isp', 'ALIENVAULT_reputation', 'ALIENVAULT_asn', 'score_average_Mobat', 'Time'
-                ]
+                ],
+                required=True
             ),
             openapi.Parameter(
                 'year',
@@ -136,7 +137,8 @@ class DadosBancoAPIView(APIView):
                 description="Response format (json or csv)",
                 type=openapi.TYPE_STRING,
                 enum=['csv', 'json'],
-                default='json'
+                default='json',
+                required=True
             )
         ]
     )
@@ -474,7 +476,8 @@ class ClusterizacaoAPIView(APIView):
                 'clusters',
                 openapi.IN_QUERY,
                 description="Number of desired clusters",
-                type=openapi.TYPE_INTEGER
+                type=openapi.TYPE_INTEGER,
+                required=True
             ),
             openapi.Parameter(
                 'year',
@@ -826,8 +829,14 @@ class FeatureSelectionAPIView(APIView):
             data = {X.columns[i]: mutual_info[i] for i in range(len(mutual_info))}
 
         elif technique == 'correlation':
+            allowed_columns = [
+                'abuseipdb_is_whitelisted', 'abuseipdb_confidence_score', 'abuseipdb_total_reports',
+                'abuseipdb_num_distinct_users', 'virustotal_reputation', 'harmless', 'malicious', 'suspicious',
+                'undetected', 'IBM_score', 'IBM_average_history_Score', 'IBM_most_common_score',
+                'score_average_Mobat'
+            ]
             correlation_matrix = df.corr()
-            target_correlations = correlation_matrix['score_average_Mobat']
+            target_correlations = correlation_matrix[allowed_columns]
             correlations = np.array(target_correlations)
             correlations = handle_infinite_values(correlations) 
             data = {target_correlations.index[i]: correlations[i] for i in range(len(correlations))}
@@ -854,7 +863,8 @@ class FeatureImportanceAPIView(APIView):
                 openapi.IN_QUERY,
                 description="Models to visualize feature importance data",
                 type=openapi.TYPE_STRING,
-                enum=['GradientBoostingRegressor', 'RandomForestRegressor', 'ExtraTreesRegressor', 'AdaBoostRegressor', 'XGBRegressor', 'ElasticNet']
+                enum=['GradientBoostingRegressor', 'RandomForestRegressor', 'ExtraTreesRegressor', 'AdaBoostRegressor', 'XGBRegressor', 'ElasticNet'],
+                required=True
             ),
             openapi.Parameter(
                 'year',
@@ -1100,7 +1110,7 @@ class CountryScoreAverageView(APIView):
             openapi.Parameter(
                 'semester',
                 openapi.IN_QUERY,
-                description="Semestre para filtrar os dados ('Primeiro' ou 'Segundo')",
+                description="Semestre para filtrar os dados ('First' ou 'Second')",
                 type=openapi.TYPE_STRING,
                 enum=['First', 'Second'],
                 required=False
@@ -1110,14 +1120,16 @@ class CountryScoreAverageView(APIView):
                 openapi.IN_QUERY,
                 description="Nome do país para visualizar a média do Score Average Mobat ou quantidade de endereços de IP ('Todos' para todos os países)",
                 type=openapi.TYPE_STRING,
-                enum=['Todos'] + list(country_names.values())
+                enum=['Todos'] + list(country_names.values()),
+                required=True
             ),
             openapi.Parameter(
                 'metric',
                 openapi.IN_QUERY,
                 description="Métrica a ser visualizada: 'average' para média do score ou 'count' para contagem de registros de endereços IP",
                 type=openapi.TYPE_STRING,
-                enum=['average', 'count']
+                enum=['average', 'count'],
+                required=True
             ),
             openapi.Parameter(
                 'view',
@@ -1308,9 +1320,9 @@ class TopIPsScoreAverageAPIView(APIView):
             openapi.Parameter(
                 'semester',
                 openapi.IN_QUERY,
-                description="Semester to filter data ('Primeiro' or 'Segundo')",
+                description="Semester to filter data ('First' or 'Second')",
                 type=openapi.TYPE_STRING,
-                enum=['Primeiro', 'Segundo'],
+                enum=['First', 'Second'],
                 required=False
             ),
             openapi.Parameter(
@@ -1353,9 +1365,9 @@ class TopIPsScoreAverageAPIView(APIView):
                 query_params = [f"{year}-{month:02}"]
             elif year:
                 if semester:
-                    if semester == 'Primeiro':
+                    if semester == 'First':
                         query = f"SELECT IP, score_average_Mobat FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '01' AND '06'"
-                    elif semester == 'Segundo':
+                    elif semester == 'Second':
                         query = f"SELECT IP, score_average_Mobat FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '07' AND '12'"
                     else:
                         return Response({'error': 'Invalid semester chosen'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1659,9 +1671,9 @@ class DispersaoFeaturesAPIView(APIView):
             openapi.Parameter(
                 'semester',
                 openapi.IN_QUERY,
-                description="Semestre para filtrar os dados ('Primeiro' ou 'Segundo')",
+                description="Semestre para filtrar os dados ('First' ou 'Second')",
                 type=openapi.TYPE_STRING,
-                enum=['Primeiro', 'Segundo'],
+                enum=['First', 'Second'],
                 required=False
             ),
             openapi.Parameter(
@@ -1700,9 +1712,9 @@ class DispersaoFeaturesAPIView(APIView):
             query_params = []
 
             if year and semester:
-                if semester == 'Primeiro':
+                if semester == 'First':
                     query = f"SELECT {feature1}, {feature2} FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '01' AND '06'"
-                elif semester == 'Segundo':
+                elif semester == 'Second':
                     query = f"SELECT {feature1}, {feature2} FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '07' AND '12'"
                 else:
                     return Response({'error': 'Semestre escolhido inválido'}, status=status.HTTP_400_BAD_REQUEST)

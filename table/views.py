@@ -648,62 +648,56 @@ class ClusterizacaoAPIView(APIView):
 
 class FeatureSelectionAPIView(APIView):    
     @swagger_auto_schema(
-    manual_parameters=[
-        openapi.Parameter(
-            'technique',
-            openapi.IN_QUERY,
-            description="Feature selection technique to visualize the data",
-            type=openapi.TYPE_STRING,
-            enum=['variance_threshold', 'select_kbest', 'lasso', 'mutual_info', 'correlation']
-        ),
-        openapi.Parameter(
-            'year',
-            openapi.IN_QUERY,
-            description="Year to filter the data",
-            type=openapi.TYPE_STRING,
-            enum=DadosBancoAPIView.get_available_years_months(),
-            required=True
-        ),
-        openapi.Parameter(
-            'month',
-            openapi.IN_QUERY,
-            description="Month to filter the data",
-            type=openapi.TYPE_INTEGER,
-            required=False
-        ),
-        openapi.Parameter(
-            'day',
-            openapi.IN_QUERY,
-            description="Day to filter the data",
-            type=openapi.TYPE_INTEGER,
-            required=False
-        ),
-        openapi.Parameter(
-            'semester',
-            openapi.IN_QUERY,
-            description="Semester to filter the data ('First' or 'Second')",
-            type=openapi.TYPE_STRING,
-            enum=['First', 'Second'],
-            required=False
-        ),
-        openapi.Parameter(
-            'ip',
-            openapi.IN_QUERY,
-            description="Specific IP address to filter the data",
-            type=openapi.TYPE_STRING,
-            required=False
-        ),
-        openapi.Parameter(
-            'view',
-            openapi.IN_QUERY,
-            description="Response format (json or csv)",
-            type=openapi.TYPE_STRING,
-            enum=['json', 'csv'],
-            required=True
-        ),
-    ],
-    responses={200: 'Feature selection data generated successfully'},
-)
+        manual_parameters=[
+            openapi.Parameter(
+                'technique',
+                openapi.IN_QUERY,
+                description="Seleção de característica para visualizar os dados",
+                type=openapi.TYPE_STRING,
+                enum=['variance_threshold', 'select_kbest', 'lasso', 'mutual_info', 'correlation'],
+                required=True
+            ),
+            openapi.Parameter(
+                'year',
+                openapi.IN_QUERY,
+                description="Ano para filtrar os dados",
+                type=openapi.TYPE_STRING,
+                enum=DadosBancoAPIView.get_available_years_months(),
+                required=True
+            ),
+            openapi.Parameter(
+                'month',
+                openapi.IN_QUERY,
+                description="Mês para filtrar os dados",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'day',
+                openapi.IN_QUERY,
+                description="Dia para filtrar os dados",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'semester',
+                openapi.IN_QUERY,
+                description="Semestre para filtrar os dados ('First' ou 'Second')",
+                type=openapi.TYPE_STRING,
+                enum=['First', 'Second'],
+                required=False
+            ),
+            openapi.Parameter(
+                'view',
+                openapi.IN_QUERY,
+                description="Response format (json or csv)",
+                type=openapi.TYPE_STRING,
+                enum=['json', 'csv'],
+                required=True
+            ),
+        ],
+        responses={200: 'Feature selection data generated successfully'},
+    )
     def get(self, request):
         technique = request.query_params.get('technique')
         year = request.query_params.get('year')
@@ -734,9 +728,9 @@ class FeatureSelectionAPIView(APIView):
 
             if year and semester:
                 if semester == 'First':
-                    query += " AND strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '01' AND '06'"
+                    query = f"SELECT * FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '01' AND '06'"
                 elif semester == 'Second':
-                    query += " AND strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '07' AND '12'"
+                    query = f"SELECT * FROM {table_name} WHERE strftime('%Y', Time) = ? AND strftime('%m', Time) BETWEEN '07' AND '12'"
                 else:
                     return Response({'error': 'Semestre escolhido inválido'}, status=status.HTTP_400_BAD_REQUEST)
                 query_params.append(year)
@@ -891,16 +885,9 @@ class FeatureImportanceAPIView(APIView):
             openapi.Parameter(
                 'semester',
                 openapi.IN_QUERY,
-                description="Semester to filter the data ('First' or 'Second')",
+                description="Semestre para filtrar os dados ('First' ou 'Second')",
                 type=openapi.TYPE_STRING,
                 enum=['First', 'Second'],
-                required=False
-            ),
-            openapi.Parameter(
-                'ip',
-                openapi.IN_QUERY,
-                description="Specific IP address to filter the data",
-                type=openapi.TYPE_STRING,
                 required=False
             ),
             openapi.Parameter(
